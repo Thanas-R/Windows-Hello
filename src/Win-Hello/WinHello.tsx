@@ -4,31 +4,20 @@ import { interpolate } from "flubber";
 import "./WinHello.css";
 
 export interface WinHelloProps {
-  /** Name shown in "Hello, {name}!" */
   name?: string;
-  /** Width of the SVG in px (height scales with aspect ratio). Default 294. */
   size?: number;
-  /** Background color of the stage. Default "#000". */
   background?: string;
-  /** Text/icon color. Default "#fff". */
   color?: string;
-  /** Hello text font-size in px. Default 25. */
   fontSize?: number;
-  /** Font family for hello text. */
   fontFamily?: string;
-  /** Animation speed multiplier. 1 = original, 2 = twice as fast. Default 1. */
   speed?: number;
-  /** Loop the animation forever. Default true. */
   loop?: boolean;
-  /** Auto-start on mount. Default true. */
   autoPlay?: boolean;
-  /** Make the stage fill its parent instead of full viewport. Default false. */
   fullScreen?: boolean;
-  /** Called every time the timeline finishes one cycle. */
   onComplete?: () => void;
 }
 
-// Original CodePen path data
+// Original CodePen path data (viewBox 0 0 294 241)
 const SMILE_DOWN =
   "M238.843 166c-15.863 34.268-50.554 58.04-90.797 58.04-39.62 0-73.857-23.04-90.046-56.453";
 const SMILE_UP =
@@ -44,6 +33,12 @@ const EYE_RIGHT =
 const EYE_TO_RIGHT =
   "M187 143c12.15 0 22-9.85 22-22s-9.85-22-22-22c-3.286 0-6.404.72-9.204 2.012C170.242 104.496 165 112.136 165 121c0 12.15 9.85 22 22 22z";
 
+// Face center inside the SVG viewBox — used as the rotation pivot.
+// The original CodePen rotates around the smile group's center, which in the
+// SVG coordinate system corresponds to the eye/face center (~148, 120).
+const FACE_CX = 148;
+const FACE_CY = 120;
+
 export default function WinHello({
   name = "dotpmm",
   size = 294,
@@ -54,7 +49,7 @@ export default function WinHello({
   speed = 1,
   loop = true,
   autoPlay = true,
-  fullScreen = false,
+  fullScreen = true,
   onComplete,
 }: WinHelloProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -75,16 +70,31 @@ export default function WinHello({
     if (!mainCtr || !hello || !smile || !smileDown || !eyeLeft || !eyeRight)
       return;
 
-    // Path interpolators (flubber returns t -> "M..." path string)
     const smileMorph = interpolate(SMILE_DOWN, SMILE_UP, { maxSegmentLength: 2 });
     const eyeLeftMorph = interpolate(EYE_LEFT, EYE_TO_LEFT, { maxSegmentLength: 2 });
     const eyeRightMorph = interpolate(EYE_RIGHT, EYE_TO_RIGHT, { maxSegmentLength: 2 });
 
-    // Reset to start frame
+    // Use SVG transform attribute so the rotation pivot is in SVG user space
+    // (around the face center). This matches the CodePen's "center center".
+    const setSmileRotation = (deg: number) => {
+      smile.setAttribute("transform", `rotate(${deg} ${FACE_CX} ${FACE_CY})`);
+    };
+    const setEyeRightScaleY = (sy: number) => {
+      // Scale around the right-eye center in SVG space.
+      // Original right eye center ~ (148, 120) before morph; after morph ~ (187, 121).
+      // Using the morphed center keeps the wink visually correct at the moment it happens.
+      const cx = 187;
+      const cy = 121;
+      eyeRight.setAttribute(
+        "transform",
+        `translate(${cx} ${cy}) scale(1 ${sy}) translate(${-cx} ${-cy})`
+      );
+    };
+
     const reset = () => {
       gsap.set([mainCtr, hello], { opacity: 0 });
-      gsap.set(smile, { rotation: 0, transformOrigin: "50% 50%" });
-      gsap.set(eyeRight, { scaleY: 1, transformOrigin: "50% 50%" });
+      setSmileRotation(0);
+      setEyeRightScaleY(1);
       smileDown.setAttribute("d", SMILE_DOWN);
       eyeLeft.setAttribute("d", EYE_LEFT);
       eyeRight.setAttribute("d", EYE_RIGHT);
@@ -96,15 +106,16 @@ export default function WinHello({
       repeatDelay: 0.3,
       delay: 0.3,
       paused: !autoPlay,
-      timeScale: speed,
       onRepeat: () => onComplete?.(),
       onComplete: () => onComplete?.(),
     });
+    tl.timeScale(speed);
 
-    // Proxies for tweening 0->1 and writing the morphed `d` attribute
     const smileProxy = { t: 0 };
     const eyeLeftProxy = { t: 0 };
     const eyeRightProxy = { t: 0 };
+    const smileRot = { r: 0 };
+    const eyeWink = { s: 1 };
 
     tl
       .to(mainCtr, { duration: 0.3, opacity: 1, ease: "power1.out" })
@@ -115,19 +126,19 @@ export default function WinHello({
         ease: "power2.inOut",
         onUpdate: () => smileDown.setAttribute("d", smileMorph(smileProxy.t)),
       })
-      // tilt
-      .to(smile, {
+      // tilt -30 (Circ.ease)
+      .to(smileRot, {
         duration: 0.3,
-        rotation: -30,
-        transformOrigin: "50% 50%",
+        r: -30,
         ease: "circ.out",
+        onUpdate: () => setSmileRotation(smileRot.r),
       })
-      // 900deg spin
-      .to(smile, {
+      // 900deg spin (Circ.easeInOut)
+      .to(smileRot, {
         duration: 0.9,
-        rotation: 900,
-        transformOrigin: "50% 50%",
+        r: 900,
         ease: "circ.inOut",
+        onUpdate: () => setSmileRotation(smileRot.r),
       })
       // morph eyes during last 0.3s of spin
       .to(
@@ -150,10 +161,18 @@ export default function WinHello({
         },
         "-=0.3"
       )
-      // wink
-      .to(eyeRight, { duration: 0.1, scaleY: 0.25, transformOrigin: "50% 50%" })
-      .to(eyeRight, { duration: 0.1, scaleY: 1 })
-      // hello text
+      // wink right eye
+      .to(eyeWink, {
+        duration: 0.1,
+        s: 0.25,
+        onUpdate: () => setEyeRightScaleY(eyeWink.s),
+      })
+      .to(eyeWink, {
+        duration: 0.1,
+        s: 1,
+        onUpdate: () => setEyeRightScaleY(eyeWink.s),
+      })
+      // hello text fades in overlapping the wink
       .to(hello, { duration: 0.3, opacity: 1 }, "-=0.3")
       // fade out
       .to(mainCtr, { duration: 0.6, delay: 1, opacity: 0 })
@@ -162,11 +181,13 @@ export default function WinHello({
         smileProxy.t = 0;
         eyeLeftProxy.t = 0;
         eyeRightProxy.t = 0;
+        smileRot.r = 0;
+        eyeWink.s = 1;
         smileDown.setAttribute("d", SMILE_DOWN);
         eyeLeft.setAttribute("d", EYE_LEFT);
         eyeRight.setAttribute("d", EYE_RIGHT);
-        gsap.set(smile, { rotation: 0 });
-        gsap.set(eyeRight, { scaleY: 1 });
+        setSmileRotation(0);
+        setEyeRightScaleY(1);
       });
 
     return () => {
@@ -179,7 +200,6 @@ export default function WinHello({
     ["--winhello-color"]: color,
     ["--winhello-font-size"]: `${fontSize}px`,
     ["--winhello-font"]: fontFamily,
-    ...(fullScreen ? {} : { minHeight: "100%" }),
   };
 
   return (
@@ -197,7 +217,7 @@ export default function WinHello({
           viewBox="0 0 294 241"
         >
           <g fill="none" fillRule="evenodd">
-            <g ref={smileRef} style={{ transformBox: "fill-box", transformOrigin: "center" }}>
+            <g ref={smileRef}>
               <path
                 ref={smileDownRef}
                 stroke={color}
@@ -207,12 +227,7 @@ export default function WinHello({
               />
             </g>
             <path ref={eyeLeftRef} fill={color} d={EYE_LEFT} />
-            <path
-              ref={eyeRightRef}
-              fill={color}
-              d={EYE_RIGHT}
-              style={{ transformBox: "fill-box", transformOrigin: "center" }}
-            />
+            <path ref={eyeRightRef} fill={color} d={EYE_RIGHT} />
           </g>
         </svg>
         <h1 className="winhello-hello" ref={helloRef}>
