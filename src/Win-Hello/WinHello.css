@@ -1,0 +1,34 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto:400,300");
+
+.winhello-root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--winhello-bg, #000);
+}
+
+.winhello-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.winhello-stage svg {
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.winhello-stage .winhello-hello {
+  color: var(--winhello-color, #fff);
+  letter-spacing: 2px;
+  font-size: var(--winhello-font-size, 25px);
+  font-family: var(--winhello-font, "Roboto", sans-serif);
+  font-weight: 300;
+  margin: 12px 0 0;
+  line-height: 1.2;
+}
