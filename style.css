@@ -1,0 +1,35 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto:400,300");
+
+html,
+body {
+  display: table;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: black;
+}
+
+.hello {
+  color: white;
+  letter-spacing: 2px;
+  font-size: 25px;
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+}
+
+#main-ctr {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
+svg {
+  transform: scale(0.5);
+}
+
+svg #smile-up,
+svg #eye-to-left,
+svg #eye-to-right,
+svg #bg {
+  visibility: hidden;
+}
