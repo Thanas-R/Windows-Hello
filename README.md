@@ -85,15 +85,15 @@ All props are optional.
 | Prop         | Type         | Default                  | Description |
 |--------------|--------------|--------------------------|-------------|
 | `name`       | `string`     | `"dotpmm"`               | Name shown in `Hello, {name}!`. |
-| `size`       | `number`     | `294`                    | Width of the SVG in pixels. Height scales with aspect ratio. |
+| `size`       | `number`     | `294`                    | Width of the SVG in pixels. Height scales with aspect ratio. This matches the original CodePen SVG size. |
 | `background` | `string`     | `"#000"`                 | Background color of the stage. Any CSS color. |
 | `color`      | `string`     | `"#fff"`                 | Color of the smile, eyes, and hello text. |
 | `fontSize`   | `number`     | `25`                     | Font size of the hello text in pixels. |
 | `fontFamily` | `string`     | `'"Roboto", sans-serif'` | Font family of the hello text. |
-| `speed`      | `number`     | `1`                      | Animation speed multiplier. `2` is twice as fast, `0.5` is half speed. |
+| `speed`      | `number`     | `1`                      | Animation speed multiplier. `1` matches the original CodePen timings, `0.5` is half speed, and `2` is twice as fast. |
 | `loop`       | `boolean`    | `true`                   | If false, the animation plays once and stops. |
 | `autoPlay`   | `boolean`    | `true`                   | If false, the timeline is created paused. |
-| `fullScreen` | `boolean`    | `false`                  | If true, stage takes the full viewport height. |
+| `fullScreen` | `boolean`    | `true`                   | If true, the stage is fixed to the full viewport with the chosen background color. |
 | `onComplete` | `() => void` | `undefined`              | Called every time a cycle finishes. |
 
 ## Examples
@@ -160,3 +160,6 @@ Timeline order matches the CodePen:
 - All styles are scoped under `.winhello-root` and `.winhello-stage`, so the component will not affect the rest of your page.
 - Roboto is loaded once via Google Fonts inside the component CSS.
 - The component is SSR safe. The animation runs only inside `useEffect`.
+- The stage and the hello text both start with inline `opacity: 0`, and the animation setup runs in `useLayoutEffect`, so the component does not flash the wrong shape before GSAP takes control.
+- The component now ships with the original CodePen timings by default: fade-in `0.3s`, smile morph `0.3s`, tilt `0.3s`, spin `0.9s`, wink `0.1s + 0.1s`, and fade-out `0.6s` after a `1s` hold.
+- The demo entry renders the component without `React.StrictMode` so local preview in Vite does not double-mount the animation during development.
