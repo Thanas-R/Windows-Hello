@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { interpolate } from "flubber";
 import "./WinHello.css";
@@ -33,9 +33,9 @@ const EYE_RIGHT =
 const EYE_TO_RIGHT =
   "M187 143c12.15 0 22-9.85 22-22s-9.85-22-22-22c-3.286 0-6.404.72-9.204 2.012C170.242 104.496 165 112.136 165 121c0 12.15 9.85 22 22 22z";
 
-// Face center inside the SVG viewBox — used as the rotation pivot.
-// The original CodePen rotates around the smile group's center, which in the
-// SVG coordinate system corresponds to the eye/face center (~148, 120).
+// The original CodePen rotates the #smile group around "center center".
+// Because that group also contains hidden guide paths, the effective pivot
+// lands at the face center rather than the visible stroke center.
 const FACE_CX = 148;
 const FACE_CY = 120;
 
@@ -60,7 +60,7 @@ export default function WinHello({
   const eyeLeftRef = useRef<SVGPathElement>(null);
   const eyeRightRef = useRef<SVGPathElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mainCtr = ctrRef.current;
     const hello = helloRef.current;
     const smile = smileRef.current;
@@ -118,12 +118,12 @@ export default function WinHello({
     const eyeWink = { s: 1 };
 
     tl
-      .to(mainCtr, { duration: 0.3, opacity: 1, ease: "power1.out" })
+      .to(mainCtr, { duration: 0.3, opacity: 1 })
       // morph smile-down -> smile-up
       .to(smileProxy, {
         duration: 0.3,
         t: 1,
-        ease: "power2.inOut",
+        ease: "none",
         onUpdate: () => smileDown.setAttribute("d", smileMorph(smileProxy.t)),
       })
       // tilt -30 (Circ.ease)
@@ -209,7 +209,7 @@ export default function WinHello({
       style={rootStyle}
       data-fullscreen={fullScreen ? "true" : "false"}
     >
-      <div className="winhello-stage" ref={ctrRef}>
+      <div className="winhello-stage" ref={ctrRef} style={{ opacity: 0 }}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width={size}
@@ -219,18 +219,35 @@ export default function WinHello({
           <g fill="none" fillRule="evenodd">
             <g ref={smileRef}>
               <path
+                stroke={color}
+                strokeWidth="30"
+                d={SMILE_UP}
+                strokeLinecap="round"
+                visibility="hidden"
+                aria-hidden="true"
+              />
+              <path
                 ref={smileDownRef}
                 stroke={color}
                 strokeWidth="30"
                 d={SMILE_DOWN}
                 strokeLinecap="round"
               />
+              <path
+                fill={color}
+                d="M43 2h211v237H43z"
+                opacity="0.1"
+                visibility="hidden"
+                aria-hidden="true"
+              />
             </g>
             <path ref={eyeLeftRef} fill={color} d={EYE_LEFT} />
             <path ref={eyeRightRef} fill={color} d={EYE_RIGHT} />
+            <path fill={color} d={EYE_TO_LEFT} visibility="hidden" aria-hidden="true" />
+            <path fill={color} d={EYE_TO_RIGHT} visibility="hidden" aria-hidden="true" />
           </g>
         </svg>
-        <h1 className="winhello-hello" ref={helloRef}>
+        <h1 className="winhello-hello" ref={helloRef} style={{ opacity: 0 }}>
           Hello, {name}!
         </h1>
       </div>
