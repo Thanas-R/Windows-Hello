@@ -1,61 +1,72 @@
 # Win-Hello
 
-A React component that recreates the Windows Hello sign-in animation (smile, spin, eyes morph, wink, then "Hello, name!"). Built with React, GSAP for the timeline, and flubber for real SVG path morphing. No paid plugins required.
+A React component that recreates the Windows Hello sign-in animation (smile morph, spin, eye morph, wink, then "Hello, name!"). Built with React, GSAP, and flubber for real SVG path morphing. No paid plugins.
 
-## Project structure
+## Files in this project
+
+You only need these files to run the demo locally:
 
 ```
 .
-├── index.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
+├── index.html              Vite entry HTML
+├── package.json            Scripts and dependencies
+├── tsconfig.json           TypeScript config
+├── vite.config.ts          Vite config
 └── src
-    ├── main.tsx              demo entry, renders <WinHello />
+    ├── main.tsx            Demo entry, renders <WinHello />
+    ├── types.d.ts          Type shim for flubber and CSS imports
     └── Win-Hello
-        ├── index.ts          public export
-        ├── WinHello.tsx      the component
-        └── WinHello.css      scoped styles
+        ├── index.ts        Public export
+        ├── WinHello.tsx    The component
+        └── WinHello.css    Scoped styles
 ```
 
-The component lives entirely under `src/Win-Hello`. The rest of the repo only exists so you can preview it locally with Vite.
+That is the whole project. Nothing else is required.
 
-## Running the demo locally
+## Running it locally in VS Code
 
-You need Node 18 or newer.
+You need Node.js 18 or newer installed.
 
-1. Install dependencies:
+1. Open the project folder in VS Code.
+2. Open the integrated terminal (View, Terminal).
+3. Install dependencies:
 
    ```
    npm install
    ```
 
-2. Start the dev server:
+4. Start the dev server:
 
    ```
    npm run dev
    ```
 
-   Vite will open `http://localhost:5173`.
+5. Vite will print a local URL, usually `http://localhost:5173`. Open it in your browser. The animation will play immediately.
 
-3. Production build (optional):
+Note: the VS Code "Go Live" extension (Live Server) only serves static HTML and will NOT work here, because this project uses TypeScript and JSX which must be compiled. Always use `npm run dev` instead.
 
-   ```
-   npm run build
-   npm run preview
-   ```
+To build for production:
+
+```
+npm run build
+npm run preview
+```
+
+`npm run build` outputs static files to `dist/`. `npm run preview` serves that build locally.
 
 ## Using Win-Hello in another project
 
 Copy the folder `src/Win-Hello` into your own project (for example `src/components/Win-Hello`).
 
-Install the two runtime dependencies in that project:
+Install the two runtime dependencies:
 
 ```
 npm install gsap flubber
 ```
 
-Then import and render it:
+If your project is TypeScript, also copy `src/types.d.ts` (or add the same `declare module "flubber"` shim somewhere in your types).
+
+Import and render:
 
 ```tsx
 import WinHello from "./components/Win-Hello";
@@ -65,35 +76,35 @@ export default function App() {
 }
 ```
 
-The component ships its own CSS via a side-effect import in `WinHello.tsx`, so you do not have to import any stylesheet manually. Make sure your bundler (Vite, Next.js, CRA, Remix, etc.) supports importing `.css` files from a component, which is the default in all of them.
+The component imports its own CSS, so you do not need to import a stylesheet manually. Any modern bundler (Vite, Next.js, CRA, Remix) supports this by default.
 
 ## Props
 
 All props are optional.
 
-| Prop         | Type       | Default              | Description |
-|--------------|------------|----------------------|-------------|
-| `name`       | `string`   | `"dotpmm"`           | Name shown in `Hello, {name}!`. |
-| `size`       | `number`   | `294`                | Width of the SVG in pixels. Height scales to keep the original aspect ratio. |
-| `background` | `string`   | `"#000"`             | Background color of the stage. Any CSS color. |
-| `color`      | `string`   | `"#fff"`             | Color of the smile, eyes, and the hello text. |
-| `fontSize`   | `number`   | `25`                 | Font size of the hello text in pixels. |
-| `fontFamily` | `string`   | `'"Roboto", sans-serif'` | Font family of the hello text. |
-| `speed`      | `number`   | `1`                  | Animation speed multiplier. `2` runs the timeline twice as fast, `0.5` runs it half speed. |
-| `loop`       | `boolean`  | `true`               | If false, the animation plays once and stops. |
-| `autoPlay`   | `boolean`  | `true`               | If false, the timeline is created paused. |
-| `fullScreen` | `boolean`  | `false`              | If true, the stage takes the full viewport height. If false, it fills its parent. |
-| `onComplete` | `() => void` | `undefined`        | Called every time a cycle finishes. With `loop=true` this fires once per loop. |
+| Prop         | Type         | Default                  | Description |
+|--------------|--------------|--------------------------|-------------|
+| `name`       | `string`     | `"dotpmm"`               | Name shown in `Hello, {name}!`. |
+| `size`       | `number`     | `294`                    | Width of the SVG in pixels. Height scales with aspect ratio. |
+| `background` | `string`     | `"#000"`                 | Background color of the stage. Any CSS color. |
+| `color`      | `string`     | `"#fff"`                 | Color of the smile, eyes, and hello text. |
+| `fontSize`   | `number`     | `25`                     | Font size of the hello text in pixels. |
+| `fontFamily` | `string`     | `'"Roboto", sans-serif'` | Font family of the hello text. |
+| `speed`      | `number`     | `1`                      | Animation speed multiplier. `2` is twice as fast, `0.5` is half speed. |
+| `loop`       | `boolean`    | `true`                   | If false, the animation plays once and stops. |
+| `autoPlay`   | `boolean`    | `true`                   | If false, the timeline is created paused. |
+| `fullScreen` | `boolean`    | `false`                  | If true, stage takes the full viewport height. |
+| `onComplete` | `() => void` | `undefined`              | Called every time a cycle finishes. |
 
 ## Examples
 
-Default Windows Hello look:
+Default look:
 
 ```tsx
 <WinHello name="dotpmm" />
 ```
 
-Bigger, centered in a custom container:
+Bigger inside a fixed-height container:
 
 ```tsx
 <div style={{ height: 600 }}>
@@ -101,7 +112,7 @@ Bigger, centered in a custom container:
 </div>
 ```
 
-Light theme, custom accent color:
+Light theme:
 
 ```tsx
 <WinHello
@@ -112,7 +123,7 @@ Light theme, custom accent color:
 />
 ```
 
-Faster animation, single play, callback when done:
+Faster, single play, with callback:
 
 ```tsx
 <WinHello
@@ -131,21 +142,21 @@ Full-screen splash:
 
 ## How the animation works
 
-The original CodePen used GSAP MorphSVGPlugin, which is a paid Club GSAP plugin. This implementation uses `flubber` to compute path interpolators between the start and end shapes, and a GSAP tween on a numeric proxy from `0` to `1` writes the interpolated `d` attribute on every frame. This gives a true 1-to-1 path morph for the smile and the two eyes, in any browser, without a license.
+The original CodePen uses GSAP MorphSVGPlugin, a paid Club GSAP plugin. This implementation uses `flubber` to build path interpolators between the start and end shapes, and a GSAP tween on a numeric proxy from `0` to `1` writes the interpolated `d` attribute on every frame. This gives a true 1-to-1 path morph for the smile and the two eyes in any browser, without a license.
 
-The timeline order matches the CodePen exactly:
+Timeline order matches the CodePen:
 
 1. Fade the container in.
 2. Morph the down smile into the up smile.
 3. Tilt the smile to -30 degrees.
 4. Spin the smile 900 degrees.
 5. During the last 0.3s of the spin, morph both eyes into the small "looking" eyes.
-6. Wink the right eye (squash and release).
+6. Wink the right eye.
 7. Fade in `Hello, {name}!`.
-8. Fade everything out, reset, loop.
+8. Fade out, reset, loop.
 
 ## Notes
 
-- All styles are scoped under `.winhello-root` and `.winhello-stage`, so dropping the component into any page will not affect the rest of your layout.
-- The Roboto font is loaded once via Google Fonts inside the component CSS. If you already load Roboto, the browser will reuse it.
-- The component is SSR safe. The animation effect runs only inside `useEffect`, which never runs on the server.
+- All styles are scoped under `.winhello-root` and `.winhello-stage`, so the component will not affect the rest of your page.
+- Roboto is loaded once via Google Fonts inside the component CSS.
+- The component is SSR safe. The animation runs only inside `useEffect`.
