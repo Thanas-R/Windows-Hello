@@ -1,27 +1,34 @@
 @import url("https://fonts.googleapis.com/css?family=Roboto:400,300");
 
 .winhello-root {
-  display: table;
   width: 100%;
-  height: 100vh;
-  background: black;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--winhello-bg, #000);
 }
 
-.winhello-root #main-ctr {
-  display: table-cell;
-  vertical-align: middle;
+.winhello-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
-.winhello-root .hello {
-  color: white;
-  letter-spacing: 2px;
-  font-size: 25px;
-  font-family: "Roboto", sans-serif;
-  font-weight: 300;
-  margin-top: 12px;
+.winhello-stage svg {
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
 }
 
-.winhello-root svg {
-  transform: scale(0.8);
+.winhello-stage .winhello-hello {
+  color: var(--winhello-color, #fff);
+  letter-spacing: 2px;
+  font-size: var(--winhello-font-size, 25px);
+  font-family: var(--winhello-font, "Roboto", sans-serif);
+  font-weight: 300;
+  margin: 12px 0 0;
+  line-height: 1.2;
 }
